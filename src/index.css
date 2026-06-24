@@ -1,0 +1,86 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #09090f;
+  --surf:      #101018;
+  --el:        #17172a;
+  --bord:      #22223a;
+  --tx:        #e0e0ee;
+  --txm:       #7070a0;
+  --txd:       #4a4a80;
+  --acc:       #7F77DD;
+  --acc-light: #AFA9EC;
+  --acc-bg:    #EEEDFE;
+  --acc-dark:  #3C3489;
+  --teal:      #5DCAA5;
+  --teal-bg:   #E1F5EE;
+  --teal-dark: #085041;
+  font-synthesis: none;
+}
+
+body {
+  background: var(--bg);
+  color: var(--tx);
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Shared button styles */
+.cl-btn {
+  padding: 5px 9px;
+  border: 0.5px solid var(--bord);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--txm);
+  cursor: pointer;
+  font-size: 12px;
+  font-family: inherit;
+  transition: background 0.1s, border-color 0.1s, color 0.1s;
+}
+.cl-btn:hover { background: var(--el); }
+.cl-btn.active {
+  background: var(--acc-bg);
+  border-color: var(--acc) !important;
+  color: var(--acc-dark);
+  font-weight: 500;
+}
+
+/* Play button */
+.cl-play {
+  padding: 7px 18px;
+  border: none;
+  border-radius: 7px;
+  background: var(--acc);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.cl-play:hover:not(:disabled) { background: var(--acc-dark); }
+.cl-play:disabled {
+  background: var(--el);
+  color: var(--txd);
+  cursor: default;
+}
+
+/* Note pills */
+.cl-tag {
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  display: inline-block;
+}
+.cl-tag-root { background: var(--teal-bg); color: var(--teal-dark); border: 0.5px solid #9FE1CB; }
+.cl-tag-tone { background: var(--acc-bg);  color: var(--acc-dark);  border: 0.5px solid var(--acc-light); }
+
+/* Dark mode override for light-bg tags */
+@media (prefers-color-scheme: dark) {
+  .cl-btn.active { background: #26215C; color: var(--acc-light); }
+  .cl-tag-root   { background: #04342C; color: #9FE1CB; border-color: #085041; }
+  .cl-tag-tone   { background: #26215C; color: var(--acc-light); border-color: var(--acc); }
+}

@@ -1,0 +1,62 @@
+/* Piano keyboard — add to index.css or import separately */
+
+.piano-wrap {
+  background: var(--surf);
+  border: 0.5px solid var(--bord);
+  border-radius: 10px;
+  padding: 14px 14px 16px;
+}
+
+.piano-keys {
+  position: relative;
+  height: 148px;
+}
+
+.piano-white-key {
+  position: absolute;
+  height: 100%;
+  border: 0.5px solid #c0c4d0;
+  border-radius: 0 0 4px 4px;
+  z-index: 1;
+  transition: background 0.12s;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 4px;
+}
+
+.piano-black-key {
+  position: absolute;
+  height: 60%;
+  border-radius: 0 0 3px 3px;
+  z-index: 2;
+  transition: background 0.12s;
+}
+
+.key-label {
+  font-size: 8px;
+  font-weight: 500;
+  user-select: none;
+}
+
+.piano-legend {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 10px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--txm);
+}
+
+.legend-swatch {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+}
