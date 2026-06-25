@@ -1,49 +1,98 @@
-/* Piano keyboard — add to index.css or import separately */
-
-.piano-wrap {
-  background: var(--surf);
-  border: 0.5px solid var(--bord);
-  border-radius: 10px;
-  padding: 14px 14px 16px;
+/* ─── Piano card ─────────────────────────────────────────────── */
+/* The dark card is the signature visual: keys glow against the lid */
+.piano-card {
+  background: #1c1c1e;
+  border-radius: 20px;
+  padding: 22px 22px 20px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.22), 0 2px 8px rgba(0,0,0,.18);
 }
 
 .piano-keys {
   position: relative;
-  height: 148px;
+  height: 188px;
+  border-radius: 2px;
+  overflow: visible;
 }
 
-.piano-white-key {
+/* ─── White keys ─────────────────────────────────────────────── */
+.pk-w {
   position: absolute;
   height: 100%;
-  border: 0.5px solid #c0c4d0;
-  border-radius: 0 0 4px 4px;
+  border-radius: 0 0 9px 9px;
+  background: linear-gradient(180deg, #d0d0d0 0%, #fdfdfd 5%, #fff 100%);
+  border: 1.5px solid #c4c4c8;
+  border-top: none;
+  box-shadow: 0 3px 10px rgba(0,0,0,.18), inset 0 -1px 0 rgba(0,0,0,.05);
   z-index: 1;
-  transition: background 0.12s;
+  transition: background 0.12s ease, border-color 0.12s ease;
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  padding-bottom: 4px;
-}
-
-.piano-black-key {
-  position: absolute;
-  height: 60%;
-  border-radius: 0 0 3px 3px;
-  z-index: 2;
-  transition: background 0.12s;
-}
-
-.key-label {
-  font-size: 8px;
-  font-weight: 500;
+  padding-bottom: 6px;
+  cursor: default;
   user-select: none;
 }
 
+.pk-w.wk-root {
+  background: linear-gradient(180deg, #72e494 0%, #f0fff5 5%, #dcffea 100%);
+  border-color: #4ec870;
+}
+
+.pk-w.wk-tone {
+  background: linear-gradient(180deg, #a09cf8 0%, #ededff 5%, #e4e2ff 100%);
+  border-color: #8480f0;
+}
+
+.pk-w.wk-active {
+  background: linear-gradient(180deg, #f4c060 0%, #fff8e4 5%, #fdf0cc 100%);
+  border-color: #e0a838;
+}
+
+/* ─── Black keys ─────────────────────────────────────────────── */
+.pk-b {
+  position: absolute;
+  height: 61%;
+  border-radius: 0 0 6px 6px;
+  background: linear-gradient(180deg, #424244 0%, #1c1c1e 55%, #111 100%);
+  box-shadow: 0 5px 14px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.09);
+  z-index: 2;
+  transition: background 0.12s ease;
+  cursor: default;
+  user-select: none;
+}
+
+.pk-b.bk-root {
+  background: linear-gradient(180deg, #4de870 0%, #22b03c 100%);
+  box-shadow: 0 4px 12px rgba(34,176,60,.4);
+}
+
+.pk-b.bk-tone {
+  background: linear-gradient(180deg, #8078f8 0%, #5856d6 100%);
+  box-shadow: 0 4px 12px rgba(88,86,214,.4);
+}
+
+.pk-b.bk-active {
+  background: linear-gradient(180deg, #ffa828 0%, #e88c00 100%);
+  box-shadow: 0 4px 12px rgba(255,159,10,.35);
+}
+
+/* ─── Key label (C3 / C4) ────────────────────────────────────── */
+.key-label {
+  font-size: 8px;
+  font-weight: 600;
+  color: #c0c0c8;
+  user-select: none;
+  letter-spacing: 0.2px;
+}
+
+.key-label.lit { color: #8480f0; }
+
+/* ─── Legend ─────────────────────────────────────────────────── */
 .piano-legend {
   display: flex;
   justify-content: center;
-  gap: 16px;
-  margin-top: 10px;
+  gap: 18px;
+  margin-top: 13px;
 }
 
 .legend-item {
@@ -51,12 +100,12 @@
   align-items: center;
   gap: 5px;
   font-size: 11px;
-  color: var(--txm);
+  color: #6e6e75;
 }
 
 .legend-swatch {
-  display: inline-block;
   width: 9px;
   height: 9px;
-  border-radius: 2px;
+  border-radius: 3px;
+  flex-shrink: 0;
 }

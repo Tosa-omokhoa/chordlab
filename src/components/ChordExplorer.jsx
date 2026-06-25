@@ -1,39 +1,66 @@
 import { useState } from 'react';
 import * as Tone from 'tone';
 import { NOTES, CHORD_TYPES } from '../data/chords';
-import {
-  getHighlightedIndices,
-  getRootIndices,
-  getChordNoteNames,
-  getToneNotes,
-} from '../utils/music';
-import { useSynth } from '../hooks/useSynth';
+import { getHighlightedIndices, getRootIndices, getChordNoteNames, getToneNotes } from '../utils/music';
+import { VOICE_META, getVoice, releaseVoice } from '../audio/voiceEngine';
 import { Piano } from './Piano';
 
+const CATEGORIES = [
+  { id: 'triad',    label: 'Triads'   },
+  { id: 'seventh',  label: 'Sevenths' },
+  { id: 'extended', label: 'Extended' },
+];
+
+// ── Small presentational components ────────────────────────────
+
 function SectionLabel({ children }) {
+  return <p className="section-label">{children}</p>;
+}
+
+function CategoryLabel({ children }) {
+  return <p className="category-label">{children}</p>;
+}
+
+// ── Voice selector (iOS segmented control) ──────────────────────
+
+function VoiceSelector({ voice, loading, onChange }) {
+  const current = VOICE_META.find(v => v.id === voice);
   return (
-    <p style={{
-      fontSize: '10px', fontWeight: 500, letterSpacing: '1.5px',
-      textTransform: 'uppercase', color: 'var(--txm)',
-      margin: '0 0 8px',
-    }}>
-      {children}
-    </p>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '28px' }}>
+      <div className="seg-ctrl">
+        {VOICE_META.map(v => (
+          <button
+            key={v.id}
+            className={`seg-btn${voice === v.id ? ' active' : ''}`}
+            onClick={() => onChange(v.id)}
+          >
+            {v.label}
+          </button>
+        ))}
+      </div>
+      <p style={{
+        fontSize: '12px',
+        color: '#6e6e73',
+        marginTop: '8px',
+        minHeight: '18px',
+        transition: 'opacity 0.2s',
+      }}>
+        {loading ? '● Loading samples...' : current?.desc}
+      </p>
+    </div>
   );
 }
 
-/**
- * Phase 1: Chord Explorer.
- * Select a root note and chord type; the piano highlights the notes
- * and the Play button sounds them via Tone.js.
- */
+// ── Main component ──────────────────────────────────────────────
+
 export function ChordExplorer() {
-  const [root,      setRoot]    = useState(0);       // semitone 0–11, 0 = C
+  const [root,      setRoot]    = useState(0);
   const [type,      setType]    = useState('Major');
+  const [voice,     setVoice]   = useState('grand');
   const [playing,   setPlaying] = useState(false);
   const [arp,       setArp]     = useState(false);
-  const [activeIdx, setActIdx]  = useState(null);    // arpeggio cursor index
-  const { getSynth } = useSynth();
+  const [activeIdx, setActIdx]  = useState(null);
+  const [loading,   setLoading] = useState(false);
 
   const chord      = CHORD_TYPES[type];
   const highlighted = getHighlightedIndices(root, chord.intervals);
@@ -41,13 +68,41 @@ export function ChordExplorer() {
   const noteNames  = getChordNoteNames(root, chord.intervals);
   const toneNotes  = getToneNotes(root, chord.intervals);
 
+  // ── Voice switch ───────────────────────────────────────────
+
+  const handleVoiceChange = async (newVoice) => {
+    if (newVoice === voice || loading) return;
+    releaseVoice(voice);
+    setPlaying(false);
+    setActIdx(null);
+    setVoice(newVoice);
+    // Pre-warm grand piano (samples need fetching)
+    if (newVoice === 'grand') {
+      setLoading(true);
+      await getVoice('grand', { onLoaded: () => setLoading(false) }).catch(() => setLoading(false));
+    }
+  };
+
+  // ── Playback ───────────────────────────────────────────────
+
   const playChord = async () => {
-    if (playing) return;
-    const synth = await getSynth();
+    if (playing || loading) return;
+
+    let synth;
+    try {
+      synth = await getVoice(voice, {
+        onLoadStart: () => setLoading(true),
+        onLoaded:    () => setLoading(false),
+      });
+    } catch {
+      setLoading(false);
+      return;
+    }
+
     setPlaying(true);
+    const noteDuration = voice === 'pad' ? '4n' : '2n';
 
     if (arp) {
-      // Arpeggio: trigger notes one by one with visual cursor
       toneNotes.forEach(({ tone, index }, i) => {
         setTimeout(() => setActIdx(index), i * 220);
         synth.triggerAttackRelease(tone, '8n', Tone.now() + i * 0.22);
@@ -55,47 +110,62 @@ export function ChordExplorer() {
       setTimeout(() => {
         setPlaying(false);
         setActIdx(null);
-      }, toneNotes.length * 220 + 900);
+      }, toneNotes.length * 220 + 1100);
     } else {
-      // Block chord: all notes at once
-      synth.triggerAttackRelease(toneNotes.map(n => n.tone), '2n');
-      setTimeout(() => setPlaying(false), 1400);
+      synth.triggerAttackRelease(toneNotes.map(n => n.tone), noteDuration);
+      setTimeout(() => setPlaying(false), voice === 'pad' ? 3200 : 1500);
     }
   };
 
   return (
     <div>
-      {/* Root note selector */}
-      <SectionLabel>Root note</SectionLabel>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '1rem' }}>
-        {NOTES.map((n, i) => (
-          <button
-            key={n}
-            className={`cl-btn${root === i ? ' active' : ''}`}
-            onClick={() => setRoot(i)}
-            style={{ minWidth: '34px', fontWeight: n.includes('#') ? 400 : 500 }}
-          >
-            {n}
-          </button>
-        ))}
+      {/* Voice selector */}
+      <VoiceSelector voice={voice} loading={loading} onChange={handleVoiceChange} />
+
+      {/* Root note */}
+      <div style={{ marginBottom: '18px' }}>
+        <SectionLabel>Root note</SectionLabel>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+          {NOTES.map((n, i) => (
+            <button
+              key={n}
+              className={`note-btn${root === i ? ' active' : ''}`}
+              onClick={() => setRoot(i)}
+              style={{ fontWeight: n.includes('#') ? 400 : 500 }}
+            >
+              {n}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Chord type selector */}
-      <SectionLabel>Chord type</SectionLabel>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '1.25rem' }}>
-        {Object.keys(CHORD_TYPES).map(t => (
-          <button
-            key={t}
-            className={`cl-btn${type === t ? ' active' : ''}`}
-            onClick={() => setType(t)}
-          >
-            {t}
-          </button>
-        ))}
+      {/* Chord types, grouped by category */}
+      <div style={{ marginBottom: '24px' }}>
+        <SectionLabel>Chord type</SectionLabel>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {CATEGORIES.map(cat => (
+            <div key={cat.id}>
+              <CategoryLabel>{cat.label}</CategoryLabel>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+                {Object.entries(CHORD_TYPES)
+                  .filter(([, v]) => v.category === cat.id)
+                  .map(([name]) => (
+                    <button
+                      key={name}
+                      className={`chord-btn${type === name ? ' active' : ''}`}
+                      onClick={() => setType(name)}
+                    >
+                      {name}
+                    </button>
+                  ))}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Piano keyboard */}
-      <div style={{ marginBottom: '12px' }}>
+      <div style={{ marginBottom: '14px' }}>
         <Piano
           highlightedIndices={highlighted}
           rootIndices={rootIdxs}
@@ -105,40 +175,40 @@ export function ChordExplorer() {
 
       {/* Info and playback bar */}
       <div style={{
-        display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '12px',
-        background: 'var(--surf)', border: '0.5px solid var(--bord)',
-        borderRadius: '10px', padding: '12px 16px',
+        background: 'var(--surface)',
+        borderRadius: 'var(--r-card)',
+        boxShadow: 'var(--shadow-card)',
+        padding: '16px 20px',
+        display: 'flex',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: '14px',
       }}>
         {/* Chord name and formula */}
         <div style={{ flex: 1, minWidth: '130px' }}>
-          <p style={{ margin: '0 0 2px', fontSize: '15px', fontWeight: 500, color: 'var(--tx)' }}>
+          <p style={{ fontSize: '20px', fontWeight: 600, letterSpacing: '-0.3px', color: 'var(--tx)' }}>
             {NOTES[root]}{' '}
-            <span style={{ color: 'var(--acc)' }}>{type}</span>
+            <span style={{ color: 'var(--accent)' }}>{type}</span>
           </p>
-          <p style={{ margin: 0, fontSize: '11px', color: 'var(--txm)' }}>
+          <p style={{ fontSize: '11px', color: 'var(--tx2)', marginTop: '2px' }}>
             {chord.formula}
           </p>
         </div>
 
-        {/* Note name pills */}
-        <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+        {/* Note pills */}
+        <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
           {noteNames.map((n, i) => (
-            <span key={i} className={`cl-tag ${i === 0 ? 'cl-tag-root' : 'cl-tag-tone'}`}>
-              {n}
-            </span>
+            <span key={i} className={`note-pill ${i === 0 ? 'root' : 'tone'}`}>{n}</span>
           ))}
         </div>
 
-        {/* Arp toggle and play button */}
-        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-          <button
-            className={`cl-btn${arp ? ' active' : ''}`}
-            onClick={() => setArp(prev => !prev)}
-          >
-            Arp
+        {/* Controls */}
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <button className={`arp-btn${arp ? ' active' : ''}`} onClick={() => setArp(p => !p)}>
+            Arpeggio
           </button>
-          <button className="cl-play" onClick={playChord} disabled={playing}>
-            {playing ? '···' : '▶ Play'}
+          <button className="play-btn" onClick={playChord} disabled={playing || loading}>
+            {loading ? 'Loading···' : playing ? '···' : '▶  Play'}
           </button>
         </div>
       </div>
