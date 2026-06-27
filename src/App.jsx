@@ -5,16 +5,18 @@ import { ProgressionBuilder }  from './components/ProgressionBuilder';
 import { VOICE_META, getVoice, releaseVoice } from './audio/voiceEngine';
 
 const PHASES = [
-  { id: 'chords',       label: 'Chord Explorer'       },
-  { id: 'scales',       label: 'Scale Explorer'        },
-  { id: 'progressions', label: 'Progression Builder'   },
+  { id: 'chords',       label: 'Chord Explorer'      },
+  { id: 'scales',       label: 'Scale Explorer'       },
+  { id: 'progressions', label: 'Progression Builder'  },
   { id: 'ear',          label: 'Ear Training', soon: true },
 ];
 
 export default function App() {
-  const [phase,   setPhase]   = useState('chords');
-  const [voice,   setVoice]   = useState('grand');
-  const [loading, setLoading] = useState(false);
+  const [phase,    setPhase]    = useState('chords');
+  const [voice,    setVoice]    = useState('grand');
+  const [loading,  setLoading]  = useState(false);
+  // View mode is shared so switching Piano/Guitar persists across phases
+  const [view,     setView]     = useState('Piano');
 
   const handleVoiceChange = async (newVoice) => {
     if (newVoice === voice || loading) return;
@@ -42,17 +44,14 @@ export default function App() {
         </p>
       </div>
 
-      {/* ── Voice selector (shared across all phases) ── */}
+      {/* ── Voice selector ── */}
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '24px' }}>
         <div className="seg-ctrl">
           {VOICE_META.map(v => (
-            <button
-              key={v.id}
+            <button key={v.id}
               className={`seg-btn${voice === v.id ? ' active' : ''}`}
               onClick={() => handleVoiceChange(v.id)}
-            >
-              {v.label}
-            </button>
+            >{v.label}</button>
           ))}
         </div>
         <p style={{ fontSize: '12px', color: '#6e6e73', marginTop: '7px', minHeight: '18px' }}>
@@ -63,8 +62,7 @@ export default function App() {
       {/* ── Phase navigation ── */}
       <nav className="phase-nav" aria-label="Phase navigation">
         {PHASES.map(p => (
-          <button
-            key={p.id}
+          <button key={p.id}
             className={`phase-tab${phase === p.id ? ' active' : ''}${p.soon ? ' soon' : ''}`}
             onClick={() => !p.soon && setPhase(p.id)}
             disabled={p.soon}
@@ -77,9 +75,24 @@ export default function App() {
       </nav>
 
       {/* ── Phase content ── */}
-      {phase === 'chords'       && <ChordExplorer     voice={voice} loading={loading} />}
-      {phase === 'scales'       && <ScaleExplorer      voice={voice} loading={loading} />}
-      {phase === 'progressions' && <ProgressionBuilder voice={voice} loading={loading} />}
+      {phase === 'chords' && (
+        <ChordExplorer
+          voice={voice} loading={loading}
+          view={view}   onViewChange={setView}
+        />
+      )}
+      {phase === 'scales' && (
+        <ScaleExplorer
+          voice={voice} loading={loading}
+          view={view}   onViewChange={setView}
+        />
+      )}
+      {phase === 'progressions' && (
+        <ProgressionBuilder
+          voice={voice} loading={loading}
+          view={view}   onViewChange={setView}
+        />
+      )}
 
     </main>
   );

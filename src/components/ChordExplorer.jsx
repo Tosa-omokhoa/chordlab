@@ -1,14 +1,10 @@
 import { useState } from 'react';
 import * as Tone from 'tone';
 import { NOTES, CHORD_TYPES } from '../data/chords';
-import {
-  getHighlightedIndices,
-  getRootIndices,
-  getChordNoteNames,
-  getToneNotes,
-} from '../utils/music';
+import { getHighlightedIndices, getRootIndices, getChordNoteNames, getToneNotes } from '../utils/music';
 import { getVoice } from '../audio/voiceEngine';
-import { Piano } from './Piano';
+import { Piano }     from './Piano';
+import { Fretboard } from './Fretboard';
 
 const CATEGORIES = [
   { id: 'triad',    label: 'Triads'   },
@@ -24,30 +20,41 @@ function CategoryLabel({ children }) {
   return <p className="category-label">{children}</p>;
 }
 
-/**
- * Phase 1: Chord Explorer.
- * voice and loading are now passed from App so the voice selector
- * is shared across all phases.
- */
-export function ChordExplorer({ voice, loading }) {
+function ViewToggle({ view, onChange }) {
+  return (
+    <div className="view-toggle">
+      <div className="view-seg">
+        {['Piano','Guitar'].map(v => (
+          <button
+            key={v}
+            className={`view-btn${view === v ? ' active' : ''}`}
+            onClick={() => onChange(v)}
+          >
+            {v}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function ChordExplorer({ voice, loading, view, onViewChange }) {
   const [root,      setRoot]    = useState(0);
   const [type,      setType]    = useState('Major');
   const [playing,   setPlaying] = useState(false);
   const [arp,       setArp]     = useState(false);
   const [activeIdx, setActIdx]  = useState(null);
 
-  const chord      = CHORD_TYPES[type];
+  const chord       = CHORD_TYPES[type];
   const highlighted = getHighlightedIndices(root, chord.intervals);
-  const rootIdxs   = getRootIndices(root);
-  const noteNames  = getChordNoteNames(root, chord.intervals);
-  const toneNotes  = getToneNotes(root, chord.intervals);
+  const rootIdxs    = getRootIndices(root);
+  const noteNames   = getChordNoteNames(root, chord.intervals);
+  const toneNotes   = getToneNotes(root, chord.intervals);
 
   const playChord = async () => {
     if (playing || loading) return;
     let synth;
-    try {
-      synth = await getVoice(voice);
-    } catch { return; }
+    try { synth = await getVoice(voice); } catch { return; }
 
     setPlaying(true);
     const dur = voice === 'pad' ? '4n' : '2n';
@@ -71,19 +78,16 @@ export function ChordExplorer({ voice, loading }) {
         <SectionLabel>Root note</SectionLabel>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
           {NOTES.map((n, i) => (
-            <button
-              key={n}
+            <button key={n}
               className={`note-btn${root === i ? ' active' : ''}`}
               onClick={() => setRoot(i)}
               style={{ fontWeight: n.includes('#') ? 400 : 500 }}
-            >
-              {n}
-            </button>
+            >{n}</button>
           ))}
         </div>
       </div>
 
-      {/* Chord type, grouped */}
+      {/* Chord type grouped */}
       <div style={{ marginBottom: '24px' }}>
         <SectionLabel>Chord type</SectionLabel>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -94,13 +98,10 @@ export function ChordExplorer({ voice, loading }) {
                 {Object.entries(CHORD_TYPES)
                   .filter(([, v]) => v.category === cat.id)
                   .map(([name]) => (
-                    <button
-                      key={name}
+                    <button key={name}
                       className={`chord-btn${type === name ? ' active' : ''}`}
                       onClick={() => setType(name)}
-                    >
-                      {name}
-                    </button>
+                    >{name}</button>
                   ))}
               </div>
             </div>
@@ -108,34 +109,26 @@ export function ChordExplorer({ voice, loading }) {
         </div>
       </div>
 
-      {/* Piano */}
+      {/* View toggle + instrument */}
+      <ViewToggle view={view} onChange={onViewChange} />
       <div style={{ marginBottom: '14px' }}>
-        <Piano
-          highlightedIndices={highlighted}
-          rootIndices={rootIdxs}
-          activeIndex={activeIdx}
-        />
+        {view === 'Guitar'
+          ? <Fretboard rootSemitone={root} intervals={chord.intervals} />
+          : <Piano highlightedIndices={highlighted} rootIndices={rootIdxs} activeIndex={activeIdx} />
+        }
       </div>
 
       {/* Info and playback bar */}
       <div style={{
-        background: 'var(--surface)',
-        borderRadius: 'var(--r-card)',
-        boxShadow: 'var(--shadow-card)',
-        padding: '16px 20px',
-        display: 'flex',
-        alignItems: 'center',
-        flexWrap: 'wrap',
-        gap: '14px',
+        background: 'var(--surface)', borderRadius: 'var(--r-card)',
+        boxShadow: 'var(--shadow-card)', padding: '16px 20px',
+        display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '14px',
       }}>
         <div style={{ flex: 1, minWidth: '130px' }}>
           <p style={{ fontSize: '20px', fontWeight: 600, letterSpacing: '-0.3px', color: 'var(--tx)' }}>
-            {NOTES[root]}{' '}
-            <span style={{ color: 'var(--accent)' }}>{type}</span>
+            {NOTES[root]} <span style={{ color: 'var(--accent)' }}>{type}</span>
           </p>
-          <p style={{ fontSize: '11px', color: 'var(--tx2)', marginTop: '2px' }}>
-            {chord.formula}
-          </p>
+          <p style={{ fontSize: '11px', color: 'var(--tx2)', marginTop: '2px' }}>{chord.formula}</p>
         </div>
         <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
           {noteNames.map((n, i) => (

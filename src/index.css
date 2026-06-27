@@ -17,9 +17,9 @@
   --danger:        #ff3b30;
   --danger-hover:  #cc2f26;
 
-  --tx:    #1d1d1f;
-  --tx2:   #6e6e73;
-  --tx3:   #98989d;
+  --tx:   #1d1d1f;
+  --tx2:  #6e6e73;
+  --tx3:  #98989d;
 
   --border-light:  rgba(0, 0, 0, 0.08);
   --r-card:        16px;
@@ -91,6 +91,7 @@ body {
   align-items: center;
   gap: 6px;
   flex-shrink: 0;
+  touch-action: manipulation;
 }
 .phase-tab:hover:not(.soon) { color: var(--tx); }
 .phase-tab.active {
@@ -131,11 +132,47 @@ body {
   font-family: inherit;
   transition: all 0.18s ease;
   white-space: nowrap;
+  touch-action: manipulation;
+}
+@media (max-width: 380px) {
+  .seg-btn { padding: 7px 14px; font-size: 12px; }
 }
 .seg-btn.active {
   background: var(--surface);
   color: var(--tx);
   box-shadow: var(--shadow-seg);
+}
+
+/* ─── Piano / Guitar view toggle ─────────────────────────────── */
+.view-toggle {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 8px;
+}
+.view-seg {
+  display: inline-flex;
+  background: rgba(116,116,128,0.10);
+  border-radius: 8px;
+  padding: 2px;
+}
+.view-btn {
+  padding: 5px 16px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--tx2);
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
+  touch-action: manipulation;
+}
+.view-btn:hover { color: var(--tx); }
+.view-btn.active {
+  background: var(--surface);
+  color: var(--tx);
+  box-shadow: 0 1px 3px rgba(0,0,0,.12), 0 0 0 0.5px rgba(0,0,0,.04);
 }
 
 /* ─── Note and chord buttons ─────────────────────────────────── */
@@ -152,6 +189,7 @@ body {
   font-family: inherit;
   transition: all 0.12s;
   touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 .note-btn:hover  { background: #ebebf0; }
 .note-btn.active {
@@ -173,6 +211,7 @@ body {
   font-family: inherit;
   transition: all 0.12s;
   touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 .chord-btn:hover  { background: #ebebf0; }
 .chord-btn.active {
@@ -197,6 +236,7 @@ body {
   font-family: inherit;
   transition: all 0.12s;
   touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 .diatonic-btn:hover { background: #ebebf0; }
 .diatonic-btn.active {
@@ -236,7 +276,7 @@ body {
   border: 0.5px solid var(--accent-border);
 }
 
-/* ─── Play, stop and arp buttons ─────────────────────────────── */
+/* ─── Play, stop, arp buttons ────────────────────────────────── */
 .play-btn {
   min-width: 96px;
   padding: 10px 22px;
@@ -251,6 +291,7 @@ body {
   letter-spacing: -0.1px;
   transition: background 0.15s, transform 0.12s;
   touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 .play-btn:hover:not(:disabled)  { background: #4240b8; transform: scale(1.02); }
 .play-btn:active:not(:disabled) { transform: scale(0.98); }
@@ -277,9 +318,61 @@ body {
   background: var(--accent-dim);
 }
 
-/* ─── Progression builder ────────────────────────────────────── */
+/* ─── Piano card (shared by Piano and Fretboard) ─────────────── */
+.piano-card {
+  background: #1c1c1e;
+  border-radius: 20px;
+  padding: 22px 22px 20px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.22), 0 2px 8px rgba(0,0,0,.18);
+}
 
-/* 4-column grid, collapses to 2×2 on small screens */
+/* ─── Piano keys ─────────────────────────────────────────────── */
+.piano-keys { position: relative; height: 188px; }
+
+.pk-w {
+  position: absolute; height: 100%;
+  border-radius: 0 0 9px 9px;
+  background: linear-gradient(180deg, #d0d0d0 0%, #fdfdfd 5%, #fff 100%);
+  border: 1.5px solid #c4c4c8; border-top: none;
+  box-shadow: 0 3px 10px rgba(0,0,0,.18), inset 0 -1px 0 rgba(0,0,0,.05);
+  z-index: 1; transition: background 0.12s ease, border-color 0.12s;
+  display: flex; align-items: flex-end; justify-content: center;
+  padding-bottom: 6px; cursor: default; user-select: none;
+}
+.pk-w.wk-root   { background: linear-gradient(180deg,#72e494 0%,#f0fff5 5%,#dcffea 100%); border-color:#4ec870; }
+.pk-w.wk-tone   { background: linear-gradient(180deg,#a09cf8 0%,#ededff 5%,#e4e2ff 100%); border-color:#8480f0; }
+.pk-w.wk-active { background: linear-gradient(180deg,#f4c060 0%,#fff8e4 5%,#fdf0cc 100%); border-color:#e0a838; }
+
+.pk-b {
+  position: absolute; height: 61%;
+  border-radius: 0 0 6px 6px;
+  background: linear-gradient(180deg,#424244 0%,#1c1c1e 55%,#111 100%);
+  box-shadow: 0 5px 14px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.09);
+  z-index: 2; transition: background 0.12s; cursor: default; user-select: none;
+}
+.pk-b.bk-root   { background: linear-gradient(180deg,#4de870 0%,#22b03c 100%); box-shadow: 0 4px 12px rgba(34,176,60,.4); }
+.pk-b.bk-tone   { background: linear-gradient(180deg,#8078f8 0%,#5856d6 100%); box-shadow: 0 4px 12px rgba(88,86,214,.4); }
+.pk-b.bk-active { background: linear-gradient(180deg,#ffa828 0%,#e88c00 100%); box-shadow: 0 4px 12px rgba(255,159,10,.35); }
+
+.key-label     { font-size: 8px; font-weight: 600; color: #c0c0c8; user-select: none; }
+.key-label.lit { color: #8480f0; }
+
+/* ─── Piano/fretboard legend ─────────────────────────────────── */
+.piano-legend {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  margin-top: 13px;
+}
+.legend-item {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 11px; color: #6e6e75;
+}
+.legend-swatch {
+  width: 9px; height: 9px; border-radius: 3px; flex-shrink: 0;
+}
+
+/* ─── Progression builder ────────────────────────────────────── */
 .seq-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -290,30 +383,22 @@ body {
   .seq-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
-/* Individual slot card */
 .slot-card {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  display: flex; flex-direction: column; align-items: flex-start;
   padding: 12px 14px 14px;
   background: var(--surface);
   border: 1.5px solid var(--border-light);
   border-radius: 14px;
   box-shadow: var(--shadow-card);
-  cursor: pointer;
-  font-family: inherit;
-  text-align: left;
+  cursor: pointer; font-family: inherit; text-align: left;
   transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s, background 0.15s;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
-.slot-card:hover:not(.playing) {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-slot);
-}
+.slot-card:hover:not(.playing) { transform: translateY(-2px); box-shadow: var(--shadow-slot); }
 .slot-card.selected {
   border-color: var(--accent);
-  background: rgba(88, 86, 214, 0.05);
+  background: rgba(88,86,214,.05);
 }
 .slot-card.playing {
   border-color: var(--accent);
@@ -321,34 +406,13 @@ body {
   transform: scale(1.03);
   box-shadow: 0 4px 18px var(--accent-glow);
 }
-
-.slot-num {
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--tx3);
-  letter-spacing: 0.5px;
-  margin-bottom: 8px;
-}
-.slot-card.playing .slot-num { color: var(--accent); opacity: 0.8; }
-
-.slot-root {
-  font-size: 26px;
-  font-weight: 700;
-  color: var(--tx);
-  letter-spacing: -0.5px;
-  line-height: 1;
-}
+.slot-num  { font-size: 10px; font-weight: 600; color: var(--tx3); margin-bottom: 8px; }
+.slot-root { font-size: 26px; font-weight: 700; color: var(--tx); letter-spacing: -0.5px; line-height: 1; }
+.slot-type { font-size: 11px; font-weight: 500; color: var(--tx2); margin-top: 4px; }
+.slot-card.playing .slot-num  { color: var(--accent); opacity: 0.8; }
 .slot-card.playing .slot-root { color: var(--accent); }
-
-.slot-type {
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--tx2);
-  margin-top: 4px;
-}
 .slot-card.playing .slot-type { color: var(--accent); opacity: 0.8; }
 
-/* Slot editor card */
 .slot-editor {
   background: var(--surface);
   border-radius: var(--r-card);
@@ -357,11 +421,8 @@ body {
   margin-bottom: 14px;
 }
 
-/* Controls bar */
 .controls-bar {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
+  display: flex; align-items: center; flex-wrap: wrap;
   gap: 10px;
   background: var(--surface);
   border-radius: var(--r-card);
@@ -373,44 +434,27 @@ body {
 }
 
 /* BPM control */
-.bpm-ctrl {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
+.bpm-ctrl { display: flex; align-items: center; gap: 10px; }
 .bpm-step {
   width: 30px; height: 30px;
   border: 1px solid var(--border-light);
   border-radius: 50%;
   background: var(--bg);
-  font-size: 20px;
-  font-weight: 300;
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  color: var(--tx);
-  font-family: inherit;
-  line-height: 1;
-  transition: background 0.1s;
+  font-size: 20px; font-weight: 300;
+  cursor: pointer; display: flex;
+  align-items: center; justify-content: center;
+  color: var(--tx); font-family: inherit;
+  line-height: 1; flex-shrink: 0;
+  transition: background 0.1s, transform 0.1s;
   touch-action: manipulation;
-  flex-shrink: 0;
 }
-.bpm-step:hover { background: #e0e0e8; }
-.bpm-step:active { transform: scale(0.92); }
-
+.bpm-step:hover  { background: #e0e0e8; }
+.bpm-step:active { transform: scale(0.9); }
 .bpm-value {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--tx);
-  min-width: 68px;
-  text-align: center;
-  white-space: nowrap;
+  font-size: 15px; font-weight: 600;
+  color: var(--tx); min-width: 68px; text-align: center; white-space: nowrap;
 }
-.bpm-unit {
-  font-size: 10px;
-  font-weight: 500;
-  color: var(--tx3);
-  margin-left: 3px;
-}
+.bpm-unit { font-size: 10px; font-weight: 500; color: var(--tx3); margin-left: 3px; }
 
 /* Share button */
 .share-btn {
@@ -419,17 +463,38 @@ body {
   border-radius: var(--r-pill);
   background: transparent;
   color: var(--tx2);
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  font-family: inherit;
-  transition: all 0.15s;
+  font-size: 12px; font-weight: 500;
+  cursor: pointer; font-family: inherit;
+  transition: all 0.15s; white-space: nowrap;
   touch-action: manipulation;
-  white-space: nowrap;
 }
 .share-btn:hover { background: var(--bg); }
 .share-btn.copied {
   border-color: #34c759;
   color: #1a7a32;
   background: var(--root-bg);
+}
+
+/* ─── Responsive layout adjustments ─────────────────────────── */
+@media (max-width: 600px) {
+  /* Smaller note buttons on mobile */
+  .note-btn { min-width: 34px; padding: 6px 8px; font-size: 12px; }
+
+  /* Tighter chord type buttons */
+  .chord-btn { padding: 5px 10px; font-size: 11px; }
+
+  /* Piano/fretboard legend wraps gracefully */
+  .piano-legend { gap: 12px; flex-wrap: wrap; }
+
+  /* Play button slightly smaller on phone */
+  .play-btn { min-width: 84px; padding: 9px 18px; font-size: 12px; }
+
+  /* Voice selector smaller on narrow phones */
+  .seg-btn { padding: 7px 14px; }
+}
+
+@media (max-width: 360px) {
+  /* Very small phones: stack info bar vertically */
+  .note-btn { min-width: 30px; padding: 5px 6px; font-size: 11px; }
+  .seg-btn  { padding: 6px 10px; font-size: 11px; }
 }

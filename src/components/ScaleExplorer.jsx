@@ -3,15 +3,12 @@ import * as Tone from 'tone';
 import { NOTES } from '../data/chords';
 import { SCALE_TYPES, SCALE_CATEGORIES } from '../data/scales';
 import {
-  getScaleIndices,
-  getHighlightedIndices,
-  getRootIndices,
-  getChordNoteNames,
-  getToneNotes,
-  getDiatonicChords,
+  getScaleIndices, getHighlightedIndices, getRootIndices,
+  getChordNoteNames, getToneNotes, getDiatonicChords,
 } from '../utils/music';
 import { getVoice } from '../audio/voiceEngine';
-import { Piano } from './Piano';
+import { Piano }     from './Piano';
+import { Fretboard } from './Fretboard';
 
 function SectionLabel({ children }) {
   return <p className="section-label">{children}</p>;
@@ -21,50 +18,46 @@ function CategoryLabel({ children }) {
   return <p className="category-label">{children}</p>;
 }
 
-/**
- * Phase 2: Scale Explorer.
- * Shows scale notes across the piano and computes diatonic chords
- * for any 7-note scale; each chord is clickable and playable.
- */
-export function ScaleExplorer({ voice, loading }) {
-  const [root,     setRoot]    = useState(0);
-  const [scale,    setScale]   = useState('Major');
-  const [selIdx,   setSelIdx]  = useState(null); // selected diatonic chord index
-  const [playing,  setPlaying] = useState(false);
-  const [arp,      setArp]     = useState(false);
-  const [actIdx,   setActIdx]  = useState(null);
+function ViewToggle({ view, onChange }) {
+  return (
+    <div className="view-toggle">
+      <div className="view-seg">
+        {['Piano','Guitar'].map(v => (
+          <button key={v} className={`view-btn${view === v ? ' active' : ''}`}
+            onClick={() => onChange(v)}>{v}</button>
+        ))}
+      </div>
+    </div>
+  );
+}
 
-  const scaleData     = SCALE_TYPES[scale];
-  const diatonic      = getDiatonicChords(root, scaleData.intervals);
-  const selChord      = diatonic && selIdx !== null ? diatonic[selIdx] : null;
+export function ScaleExplorer({ voice, loading, view, onViewChange }) {
+  const [root,    setRoot]    = useState(0);
+  const [scale,   setScale]   = useState('Major');
+  const [selIdx,  setSelIdx]  = useState(null);
+  const [playing, setPlaying] = useState(false);
+  const [arp,     setArp]     = useState(false);
+  const [actIdx,  setActIdx]  = useState(null);
 
-  // Piano shows chord when one is selected, otherwise shows the full scale
-  const scaleIndices  = getScaleIndices(root, scaleData.intervals);
-  const highlighted   = selChord
-    ? getHighlightedIndices(selChord.root, selChord.intervals)
-    : scaleIndices;
-  const rootIdxs      = selChord
-    ? getRootIndices(selChord.root)
-    : getRootIndices(root);
+  const scaleData  = SCALE_TYPES[scale];
+  const diatonic   = getDiatonicChords(root, scaleData.intervals);
+  const selChord   = diatonic && selIdx !== null ? diatonic[selIdx] : null;
 
-  // ── Diatonic chord selection ────────────────────────────────
-  const handleDegreeClick = async (chord, idx) => {
-    if (selIdx === idx) { setSelIdx(null); return; } // deselect
-    setSelIdx(idx);
-    await playNotes(chord.root, chord.intervals);
-  };
+  const scaleIndices = getScaleIndices(root, scaleData.intervals);
+  const highlighted  = selChord
+    ? getHighlightedIndices(selChord.root, selChord.intervals) : scaleIndices;
+  const rootIdxs     = selChord ? getRootIndices(selChord.root) : getRootIndices(root);
 
-  // ── Playback ────────────────────────────────────────────────
+  // For guitar view: show selected diatonic chord, or just root notes if none selected
+  const guitarRoot      = selChord ? selChord.root      : root;
+  const guitarIntervals = selChord ? selChord.intervals  : [0]; // root only when no chord selected
+
   const playNotes = async (chordRoot, intervals) => {
     if (playing || loading) return;
     let synth;
-    try {
-      synth = await getVoice(voice);
-    } catch { return; }
-
+    try { synth = await getVoice(voice); } catch { return; }
     const tones = getToneNotes(chordRoot, intervals);
     setPlaying(true);
-
     if (arp) {
       tones.forEach(({ tone, index }, i) => {
         setTimeout(() => setActIdx(index), i * 220);
@@ -81,16 +74,10 @@ export function ScaleExplorer({ voice, loading }) {
     if (playing || loading) return;
     let synth;
     try { synth = await getVoice(voice); } catch { return; }
-
     const tones = scaleData.intervals
-      .map(iv => ({
-        tone: `${NOTES[(root + iv) % 12]}${3 + Math.floor((root + iv) / 12)}`,
-        index: root + iv,
-      }))
+      .map(iv => ({ tone:`${NOTES[(root+iv)%12]}${3+Math.floor((root+iv)/12)}`, index:root+iv }))
       .filter(n => n.index < 24);
-
-    setSelIdx(null);
-    setPlaying(true);
+    setSelIdx(null); setPlaying(true);
     tones.forEach(({ tone, index }, i) => {
       setTimeout(() => setActIdx(index), i * 200);
       synth.triggerAttackRelease(tone, '8n', Tone.now() + i * 0.2);
@@ -109,19 +96,16 @@ export function ScaleExplorer({ voice, loading }) {
         <SectionLabel>Root note</SectionLabel>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
           {NOTES.map((n, i) => (
-            <button
-              key={n}
+            <button key={n}
               className={`note-btn${root === i ? ' active' : ''}`}
               onClick={() => { setRoot(i); setSelIdx(null); }}
               style={{ fontWeight: n.includes('#') ? 400 : 500 }}
-            >
-              {n}
-            </button>
+            >{n}</button>
           ))}
         </div>
       </div>
 
-      {/* Scale type, grouped by category */}
+      {/* Scale type grouped */}
       <div style={{ marginBottom: '24px' }}>
         <SectionLabel>Scale type</SectionLabel>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -132,13 +116,10 @@ export function ScaleExplorer({ voice, loading }) {
                 {Object.entries(SCALE_TYPES)
                   .filter(([, v]) => v.category === cat.id)
                   .map(([name]) => (
-                    <button
-                      key={name}
+                    <button key={name}
                       className={`chord-btn${scale === name ? ' active' : ''}`}
                       onClick={() => { setScale(name); setSelIdx(null); }}
-                    >
-                      {name}
-                    </button>
+                    >{name}</button>
                   ))}
               </div>
             </div>
@@ -146,33 +127,43 @@ export function ScaleExplorer({ voice, loading }) {
         </div>
       </div>
 
-      {/* Piano */}
+      {/* View toggle + instrument */}
+      <ViewToggle view={view} onChange={onViewChange} />
       <div style={{ marginBottom: '14px' }}>
-        <Piano
-          highlightedIndices={highlighted}
-          rootIndices={rootIdxs}
-          activeIndex={actIdx}
-        />
+        {view === 'Guitar'
+          ? <Fretboard rootSemitone={guitarRoot} intervals={guitarIntervals} />
+          : <Piano highlightedIndices={highlighted} rootIndices={rootIdxs} activeIndex={actIdx} />
+        }
       </div>
+
+      {/* Guitar mode hint when no chord selected */}
+      {view === 'Guitar' && !selChord && (
+        <p style={{ fontSize: '11px', color: 'var(--tx3)', textAlign: 'center', marginBottom: '12px' }}>
+          Select a chord below to see its guitar voicing.
+        </p>
+      )}
 
       {/* Diatonic chords panel */}
       {diatonic && (
         <div style={{
-          background: 'var(--surface)',
-          borderRadius: 'var(--r-card)',
-          boxShadow: 'var(--shadow-card)',
-          padding: '16px 20px',
-          marginBottom: '14px',
+          background: 'var(--surface)', borderRadius: 'var(--r-card)',
+          boxShadow: 'var(--shadow-card)', padding: '16px 20px', marginBottom: '14px',
         }}>
-          <p className="section-label" style={{ marginBottom: '12px' }}>
-            Chords in this scale
-          </p>
+          <p className="section-label" style={{ marginBottom: '12px' }}>Chords in this scale</p>
           <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
             {diatonic.map((chord, idx) => (
-              <button
-                key={idx}
-                className={`diatonic-btn${selIdx === idx ? ' active' : ''}${chord.quality === 'Minor' ? ' minor' : ''}${chord.quality === 'Dim' ? ' dim' : ''}`}
-                onClick={() => handleDegreeClick(chord, idx)}
+              <button key={idx}
+                className={[
+                  'diatonic-btn',
+                  selIdx === idx ? 'active' : '',
+                  chord.quality === 'Minor' ? 'minor' : '',
+                  chord.quality === 'Dim'   ? 'dim'   : '',
+                ].join(' ')}
+                onClick={() => {
+                  if (selIdx === idx) { setSelIdx(null); return; }
+                  setSelIdx(idx);
+                  playNotes(chord.root, chord.intervals);
+                }}
               >
                 <span className="degree-roman">{chord.degree}</span>
                 <span className="degree-name">{chord.name}</span>
@@ -181,36 +172,24 @@ export function ScaleExplorer({ voice, loading }) {
           </div>
           {selIdx !== null && (
             <p style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '10px' }}>
-              Tap again to clear and return to scale view.
+              Tap again to return to scale view.
             </p>
           )}
         </div>
       )}
 
-      {/* Info + playback bar */}
+      {/* Info and playback bar */}
       <div style={{
-        background: 'var(--surface)',
-        borderRadius: 'var(--r-card)',
-        boxShadow: 'var(--shadow-card)',
-        padding: '16px 20px',
-        display: 'flex',
-        alignItems: 'center',
-        flexWrap: 'wrap',
-        gap: '14px',
+        background: 'var(--surface)', borderRadius: 'var(--r-card)',
+        boxShadow: 'var(--shadow-card)', padding: '16px 20px',
+        display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '14px',
       }}>
         <div style={{ flex: 1, minWidth: '130px' }}>
           <p style={{ fontSize: '20px', fontWeight: 600, letterSpacing: '-0.3px', color: 'var(--tx)' }}>
-            {selChord ? (
-              <>
-                {NOTES[selChord.root]}{' '}
-                <span style={{ color: 'var(--accent)' }}>{selChord.quality}</span>
-              </>
-            ) : (
-              <>
-                {NOTES[root]}{' '}
-                <span style={{ color: 'var(--accent)' }}>{scale}</span>
-              </>
-            )}
+            {selChord
+              ? <>{NOTES[selChord.root]} <span style={{ color: 'var(--accent)' }}>{selChord.quality}</span></>
+              : <>{NOTES[root]} <span style={{ color: 'var(--accent)' }}>{scale}</span></>
+            }
           </p>
           <p style={{ fontSize: '11px', color: 'var(--tx2)', marginTop: '2px' }}>
             {selChord
@@ -218,27 +197,17 @@ export function ScaleExplorer({ voice, loading }) {
               : scaleData.formula}
           </p>
         </div>
-
-        {/* Note pills */}
         <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
           {noteNames.map((n, i) => (
             <span key={i} className={`note-pill ${i === 0 ? 'root' : 'tone'}`}>{n}</span>
           ))}
         </div>
-
-        {/* Controls */}
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <button
-            className={`arp-btn${arp ? ' active' : ''}`}
-            onClick={() => setArp(p => !p)}
-          >
+          <button className={`arp-btn${arp ? ' active' : ''}`} onClick={() => setArp(p => !p)}>
             Arpeggio
           </button>
-          <button
-            className="play-btn"
-            onClick={selChord
-              ? () => playNotes(selChord.root, selChord.intervals)
-              : playScale}
+          <button className="play-btn"
+            onClick={selChord ? () => playNotes(selChord.root, selChord.intervals) : playScale}
             disabled={playing || loading}
           >
             {loading ? 'Loading···' : playing ? '···' : '▶  Play'}
