@@ -1,13 +1,14 @@
 import { useState } from 'react';
-import { ChordExplorer } from './components/ChordExplorer';
-import { ScaleExplorer }  from './components/ScaleExplorer';
+import { ChordExplorer }      from './components/ChordExplorer';
+import { ScaleExplorer }       from './components/ScaleExplorer';
+import { ProgressionBuilder }  from './components/ProgressionBuilder';
 import { VOICE_META, getVoice, releaseVoice } from './audio/voiceEngine';
 
 const PHASES = [
   { id: 'chords',       label: 'Chord Explorer'       },
   { id: 'scales',       label: 'Scale Explorer'        },
-  { id: 'progressions', label: 'Progression Builder', soon: true },
-  { id: 'ear',          label: 'Ear Training',         soon: true },
+  { id: 'progressions', label: 'Progression Builder'   },
+  { id: 'ear',          label: 'Ear Training', soon: true },
 ];
 
 export default function App() {
@@ -29,10 +30,10 @@ export default function App() {
   const currentVoice = VOICE_META.find(v => v.id === voice);
 
   return (
-    <main style={{ maxWidth: '700px', margin: '0 auto', padding: '36px 20px 56px' }}>
+    <main style={{ maxWidth: '700px', margin: '0 auto', padding: '32px 20px 56px' }}>
 
-      {/* ── Header ── */}
-      <div style={{ textAlign: 'center', marginBottom: '28px' }}>
+      {/* ── Logo ── */}
+      <div style={{ textAlign: 'center', marginBottom: '24px' }}>
         <h1 style={{ fontSize: '28px', fontWeight: 600, letterSpacing: '-0.5px', color: '#1d1d1f' }}>
           Chord<span style={{ color: '#5856d6' }}>Lab</span>
         </h1>
@@ -42,7 +43,7 @@ export default function App() {
       </div>
 
       {/* ── Voice selector (shared across all phases) ── */}
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '28px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '24px' }}>
         <div className="seg-ctrl">
           {VOICE_META.map(v => (
             <button
@@ -54,29 +55,31 @@ export default function App() {
             </button>
           ))}
         </div>
-        <p style={{ fontSize: '12px', color: '#6e6e73', marginTop: '8px', minHeight: '18px' }}>
+        <p style={{ fontSize: '12px', color: '#6e6e73', marginTop: '7px', minHeight: '18px' }}>
           {loading ? '● Loading samples...' : currentVoice?.desc}
         </p>
       </div>
 
       {/* ── Phase navigation ── */}
-      <div className="phase-nav">
+      <nav className="phase-nav" aria-label="Phase navigation">
         {PHASES.map(p => (
           <button
             key={p.id}
             className={`phase-tab${phase === p.id ? ' active' : ''}${p.soon ? ' soon' : ''}`}
             onClick={() => !p.soon && setPhase(p.id)}
             disabled={p.soon}
+            aria-current={phase === p.id ? 'page' : undefined}
           >
             {p.label}
             {p.soon && <span className="soon-badge">Soon</span>}
           </button>
         ))}
-      </div>
+      </nav>
 
       {/* ── Phase content ── */}
-      {phase === 'chords' && <ChordExplorer voice={voice} loading={loading} />}
-      {phase === 'scales' && <ScaleExplorer voice={voice} loading={loading} />}
+      {phase === 'chords'       && <ChordExplorer     voice={voice} loading={loading} />}
+      {phase === 'scales'       && <ScaleExplorer      voice={voice} loading={loading} />}
+      {phase === 'progressions' && <ProgressionBuilder voice={voice} loading={loading} />}
 
     </main>
   );
