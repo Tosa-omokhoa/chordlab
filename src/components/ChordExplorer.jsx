@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import * as Tone from 'tone';
 import { NOTES, CHORD_TYPES } from '../data/chords';
 import { getHighlightedIndices, getRootIndices, getChordNoteNames, getToneNotes } from '../utils/music';
@@ -15,35 +15,29 @@ const CATEGORIES = [
 function SectionLabel({ children }) {
   return <p className="section-label">{children}</p>;
 }
-
 function CategoryLabel({ children }) {
   return <p className="category-label">{children}</p>;
 }
-
 function ViewToggle({ view, onChange }) {
   return (
     <div className="view-toggle">
       <div className="view-seg">
         {['Piano','Guitar'].map(v => (
-          <button
-            key={v}
-            className={`view-btn${view === v ? ' active' : ''}`}
-            onClick={() => onChange(v)}
-          >
-            {v}
-          </button>
+          <button key={v} className={`view-btn${view === v ? ' active' : ''}`}
+            onClick={() => onChange(v)}>{v}</button>
         ))}
       </div>
     </div>
   );
 }
 
-export function ChordExplorer({ voice, loading, view, onViewChange }) {
+export function ChordExplorer({ voice, loading, view, onViewChange, guitarVoice, onGuitarVoiceChange }) {
   const [root,      setRoot]    = useState(0);
   const [type,      setType]    = useState('Major');
   const [playing,   setPlaying] = useState(false);
   const [arp,       setArp]     = useState(false);
   const [activeIdx, setActIdx]  = useState(null);
+  const fretboardRef            = useRef(null);
 
   const chord       = CHORD_TYPES[type];
   const highlighted = getHighlightedIndices(root, chord.intervals);
@@ -53,9 +47,18 @@ export function ChordExplorer({ voice, loading, view, onViewChange }) {
 
   const playChord = async () => {
     if (playing || loading) return;
+
+    // ── Guitar mode ───────────────────────────────────────────
+    if (view === 'Guitar' && fretboardRef.current) {
+      setPlaying(true);
+      const dur = await fretboardRef.current.strum({ arp });
+      setTimeout(() => setPlaying(false), dur);
+      return;
+    }
+
+    // ── Piano mode ────────────────────────────────────────────
     let synth;
     try { synth = await getVoice(voice); } catch { return; }
-
     setPlaying(true);
     const dur = voice === 'pad' ? '4n' : '2n';
 
@@ -113,12 +116,22 @@ export function ChordExplorer({ voice, loading, view, onViewChange }) {
       <ViewToggle view={view} onChange={onViewChange} />
       <div style={{ marginBottom: '14px' }}>
         {view === 'Guitar'
-          ? <Fretboard rootSemitone={root} intervals={chord.intervals} />
-          : <Piano highlightedIndices={highlighted} rootIndices={rootIdxs} activeIndex={activeIdx} />
+          ? <Fretboard
+              ref={fretboardRef}
+              rootSemitone={root}
+              intervals={chord.intervals}
+              guitarVoice={guitarVoice}
+              onGuitarVoiceChange={onGuitarVoiceChange}
+            />
+          : <Piano
+              highlightedIndices={highlighted}
+              rootIndices={rootIdxs}
+              activeIndex={activeIdx}
+            />
         }
       </div>
 
-      {/* Info and playback bar */}
+      {/* Info and playback */}
       <div style={{
         background: 'var(--surface)', borderRadius: 'var(--r-card)',
         boxShadow: 'var(--shadow-card)', padding: '16px 20px',
@@ -137,7 +150,7 @@ export function ChordExplorer({ voice, loading, view, onViewChange }) {
         </div>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           <button className={`arp-btn${arp ? ' active' : ''}`} onClick={() => setArp(p => !p)}>
-            Arpeggio
+            {view === 'Guitar' ? 'Arpeggio' : 'Arpeggio'}
           </button>
           <button className="play-btn" onClick={playChord} disabled={playing || loading}>
             {loading ? 'Loading···' : playing ? '···' : '▶  Play'}

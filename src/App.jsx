@@ -12,11 +12,12 @@ const PHASES = [
 ];
 
 export default function App() {
-  const [phase,    setPhase]    = useState('chords');
-  const [voice,    setVoice]    = useState('grand');
-  const [loading,  setLoading]  = useState(false);
-  // View mode is shared so switching Piano/Guitar persists across phases
-  const [view,     setView]     = useState('Piano');
+  const [phase,        setPhase]        = useState('chords');
+  const [voice,        setVoice]        = useState('grand');
+  const [loading,      setLoading]      = useState(false);
+  const [view,         setView]         = useState('Piano');
+  // Guitar voice is separate from piano voice and persists across phases
+  const [guitarVoice,  setGuitarVoice]  = useState('steel');
 
   const handleVoiceChange = async (newVoice) => {
     if (newVoice === voice || loading) return;
@@ -31,10 +32,19 @@ export default function App() {
 
   const currentVoice = VOICE_META.find(v => v.id === voice);
 
+  const sharedProps = {
+    voice,
+    loading,
+    view,
+    onViewChange:         setView,
+    guitarVoice,
+    onGuitarVoiceChange:  setGuitarVoice,
+  };
+
   return (
     <main style={{ maxWidth: '700px', margin: '0 auto', padding: '32px 20px 56px' }}>
 
-      {/* ── Logo ── */}
+      {/* Logo */}
       <div style={{ textAlign: 'center', marginBottom: '24px' }}>
         <h1 style={{ fontSize: '28px', fontWeight: 600, letterSpacing: '-0.5px', color: '#1d1d1f' }}>
           Chord<span style={{ color: '#5856d6' }}>Lab</span>
@@ -44,22 +54,24 @@ export default function App() {
         </p>
       </div>
 
-      {/* ── Voice selector ── */}
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '24px' }}>
-        <div className="seg-ctrl">
-          {VOICE_META.map(v => (
-            <button key={v.id}
-              className={`seg-btn${voice === v.id ? ' active' : ''}`}
-              onClick={() => handleVoiceChange(v.id)}
-            >{v.label}</button>
-          ))}
+      {/* Piano voice selector (only visible in Piano view) */}
+      {view === 'Piano' && (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '24px' }}>
+          <div className="seg-ctrl">
+            {VOICE_META.map(v => (
+              <button key={v.id}
+                className={`seg-btn${voice === v.id ? ' active' : ''}`}
+                onClick={() => handleVoiceChange(v.id)}
+              >{v.label}</button>
+            ))}
+          </div>
+          <p style={{ fontSize: '12px', color: '#6e6e73', marginTop: '7px', minHeight: '18px' }}>
+            {loading ? '● Loading samples...' : currentVoice?.desc}
+          </p>
         </div>
-        <p style={{ fontSize: '12px', color: '#6e6e73', marginTop: '7px', minHeight: '18px' }}>
-          {loading ? '● Loading samples...' : currentVoice?.desc}
-        </p>
-      </div>
+      )}
 
-      {/* ── Phase navigation ── */}
+      {/* Phase navigation */}
       <nav className="phase-nav" aria-label="Phase navigation">
         {PHASES.map(p => (
           <button key={p.id}
@@ -74,25 +86,10 @@ export default function App() {
         ))}
       </nav>
 
-      {/* ── Phase content ── */}
-      {phase === 'chords' && (
-        <ChordExplorer
-          voice={voice} loading={loading}
-          view={view}   onViewChange={setView}
-        />
-      )}
-      {phase === 'scales' && (
-        <ScaleExplorer
-          voice={voice} loading={loading}
-          view={view}   onViewChange={setView}
-        />
-      )}
-      {phase === 'progressions' && (
-        <ProgressionBuilder
-          voice={voice} loading={loading}
-          view={view}   onViewChange={setView}
-        />
-      )}
+      {/* Phase content */}
+      {phase === 'chords'       && <ChordExplorer     {...sharedProps} />}
+      {phase === 'scales'       && <ScaleExplorer      {...sharedProps} />}
+      {phase === 'progressions' && <ProgressionBuilder {...sharedProps} />}
 
     </main>
   );

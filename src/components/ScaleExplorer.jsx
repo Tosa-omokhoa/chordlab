@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import * as Tone from 'tone';
 import { NOTES } from '../data/chords';
 import { SCALE_TYPES, SCALE_CATEGORIES } from '../data/scales';
@@ -6,17 +6,12 @@ import {
   getScaleIndices, getHighlightedIndices, getRootIndices,
   getChordNoteNames, getToneNotes, getDiatonicChords,
 } from '../utils/music';
-import { getVoice } from '../audio/voiceEngine';
+import { getVoice }  from '../audio/voiceEngine';
 import { Piano }     from './Piano';
 import { Fretboard } from './Fretboard';
 
-function SectionLabel({ children }) {
-  return <p className="section-label">{children}</p>;
-}
-
-function CategoryLabel({ children }) {
-  return <p className="category-label">{children}</p>;
-}
+function SectionLabel({ children }) { return <p className="section-label">{children}</p>; }
+function CategoryLabel({ children }) { return <p className="category-label">{children}</p>; }
 
 function ViewToggle({ view, onChange }) {
   return (
@@ -31,29 +26,37 @@ function ViewToggle({ view, onChange }) {
   );
 }
 
-export function ScaleExplorer({ voice, loading, view, onViewChange }) {
+export function ScaleExplorer({ voice, loading, view, onViewChange, guitarVoice, onGuitarVoiceChange }) {
   const [root,    setRoot]    = useState(0);
   const [scale,   setScale]   = useState('Major');
   const [selIdx,  setSelIdx]  = useState(null);
   const [playing, setPlaying] = useState(false);
   const [arp,     setArp]     = useState(false);
   const [actIdx,  setActIdx]  = useState(null);
+  const fretboardRef          = useRef(null);
 
   const scaleData  = SCALE_TYPES[scale];
   const diatonic   = getDiatonicChords(root, scaleData.intervals);
   const selChord   = diatonic && selIdx !== null ? diatonic[selIdx] : null;
 
-  const scaleIndices = getScaleIndices(root, scaleData.intervals);
-  const highlighted  = selChord
+  const scaleIndices  = getScaleIndices(root, scaleData.intervals);
+  const highlighted   = selChord
     ? getHighlightedIndices(selChord.root, selChord.intervals) : scaleIndices;
-  const rootIdxs     = selChord ? getRootIndices(selChord.root) : getRootIndices(root);
+  const rootIdxs      = selChord ? getRootIndices(selChord.root) : getRootIndices(root);
 
-  // For guitar view: show selected diatonic chord, or just root notes if none selected
   const guitarRoot      = selChord ? selChord.root      : root;
-  const guitarIntervals = selChord ? selChord.intervals  : [0]; // root only when no chord selected
+  const guitarIntervals = selChord ? selChord.intervals  : [0];
 
   const playNotes = async (chordRoot, intervals) => {
     if (playing || loading) return;
+
+    if (view === 'Guitar' && fretboardRef.current) {
+      setPlaying(true);
+      const dur = await fretboardRef.current.strum({ arp });
+      setTimeout(() => setPlaying(false), dur);
+      return;
+    }
+
     let synth;
     try { synth = await getVoice(voice); } catch { return; }
     const tones = getToneNotes(chordRoot, intervals);
@@ -72,6 +75,15 @@ export function ScaleExplorer({ voice, loading, view, onViewChange }) {
 
   const playScale = async () => {
     if (playing || loading) return;
+
+    if (view === 'Guitar' && fretboardRef.current) {
+      setSelIdx(null);
+      setPlaying(true);
+      const dur = await fretboardRef.current.strum({ arp: true }); // always arp for scale
+      setTimeout(() => setPlaying(false), dur);
+      return;
+    }
+
     let synth;
     try { synth = await getVoice(voice); } catch { return; }
     const tones = scaleData.intervals
@@ -105,7 +117,7 @@ export function ScaleExplorer({ voice, loading, view, onViewChange }) {
         </div>
       </div>
 
-      {/* Scale type grouped */}
+      {/* Scale type */}
       <div style={{ marginBottom: '24px' }}>
         <SectionLabel>Scale type</SectionLabel>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -129,36 +141,36 @@ export function ScaleExplorer({ voice, loading, view, onViewChange }) {
 
       {/* View toggle + instrument */}
       <ViewToggle view={view} onChange={onViewChange} />
+      {view === 'Guitar' && !selChord && (
+        <p style={{ fontSize:'11px', color:'var(--tx3)', textAlign:'center', marginBottom:'8px' }}>
+          Select a chord below to see its guitar voicing.
+        </p>
+      )}
       <div style={{ marginBottom: '14px' }}>
         {view === 'Guitar'
-          ? <Fretboard rootSemitone={guitarRoot} intervals={guitarIntervals} />
+          ? <Fretboard
+              ref={fretboardRef}
+              rootSemitone={guitarRoot}
+              intervals={guitarIntervals}
+              guitarVoice={guitarVoice}
+              onGuitarVoiceChange={onGuitarVoiceChange}
+            />
           : <Piano highlightedIndices={highlighted} rootIndices={rootIdxs} activeIndex={actIdx} />
         }
       </div>
 
-      {/* Guitar mode hint when no chord selected */}
-      {view === 'Guitar' && !selChord && (
-        <p style={{ fontSize: '11px', color: 'var(--tx3)', textAlign: 'center', marginBottom: '12px' }}>
-          Select a chord below to see its guitar voicing.
-        </p>
-      )}
-
-      {/* Diatonic chords panel */}
+      {/* Diatonic chords */}
       {diatonic && (
         <div style={{
-          background: 'var(--surface)', borderRadius: 'var(--r-card)',
-          boxShadow: 'var(--shadow-card)', padding: '16px 20px', marginBottom: '14px',
+          background:'var(--surface)', borderRadius:'var(--r-card)',
+          boxShadow:'var(--shadow-card)', padding:'16px 20px', marginBottom:'14px',
         }}>
-          <p className="section-label" style={{ marginBottom: '12px' }}>Chords in this scale</p>
-          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+          <p className="section-label" style={{ marginBottom:'12px' }}>Chords in this scale</p>
+          <div style={{ display:'flex', gap:'6px', flexWrap:'wrap' }}>
             {diatonic.map((chord, idx) => (
               <button key={idx}
-                className={[
-                  'diatonic-btn',
-                  selIdx === idx ? 'active' : '',
-                  chord.quality === 'Minor' ? 'minor' : '',
-                  chord.quality === 'Dim'   ? 'dim'   : '',
-                ].join(' ')}
+                className={['diatonic-btn', selIdx===idx?'active':'',
+                  chord.quality==='Minor'?'minor':'', chord.quality==='Dim'?'dim':''].join(' ')}
                 onClick={() => {
                   if (selIdx === idx) { setSelIdx(null); return; }
                   setSelIdx(idx);
@@ -171,46 +183,42 @@ export function ScaleExplorer({ voice, loading, view, onViewChange }) {
             ))}
           </div>
           {selIdx !== null && (
-            <p style={{ fontSize: '11px', color: 'var(--tx3)', marginTop: '10px' }}>
+            <p style={{ fontSize:'11px', color:'var(--tx3)', marginTop:'10px' }}>
               Tap again to return to scale view.
             </p>
           )}
         </div>
       )}
 
-      {/* Info and playback bar */}
+      {/* Info bar */}
       <div style={{
-        background: 'var(--surface)', borderRadius: 'var(--r-card)',
-        boxShadow: 'var(--shadow-card)', padding: '16px 20px',
-        display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '14px',
+        background:'var(--surface)', borderRadius:'var(--r-card)',
+        boxShadow:'var(--shadow-card)', padding:'16px 20px',
+        display:'flex', alignItems:'center', flexWrap:'wrap', gap:'14px',
       }}>
-        <div style={{ flex: 1, minWidth: '130px' }}>
-          <p style={{ fontSize: '20px', fontWeight: 600, letterSpacing: '-0.3px', color: 'var(--tx)' }}>
+        <div style={{ flex:1, minWidth:'130px' }}>
+          <p style={{ fontSize:'20px', fontWeight:600, letterSpacing:'-0.3px', color:'var(--tx)' }}>
             {selChord
-              ? <>{NOTES[selChord.root]} <span style={{ color: 'var(--accent)' }}>{selChord.quality}</span></>
-              : <>{NOTES[root]} <span style={{ color: 'var(--accent)' }}>{scale}</span></>
-            }
+              ? <>{NOTES[selChord.root]} <span style={{color:'var(--accent)'}}>{selChord.quality}</span></>
+              : <>{NOTES[root]} <span style={{color:'var(--accent)'}}>{scale}</span></>}
           </p>
-          <p style={{ fontSize: '11px', color: 'var(--tx2)', marginTop: '2px' }}>
-            {selChord
-              ? `Degree ${selChord.degree} · ${scaleData.intervals.length} note scale`
-              : scaleData.formula}
+          <p style={{ fontSize:'11px', color:'var(--tx2)', marginTop:'2px' }}>
+            {selChord ? `Degree ${selChord.degree}` : scaleData.formula}
           </p>
         </div>
-        <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
-          {noteNames.map((n, i) => (
-            <span key={i} className={`note-pill ${i === 0 ? 'root' : 'tone'}`}>{n}</span>
+        <div style={{ display:'flex', gap:'5px', flexWrap:'wrap' }}>
+          {noteNames.map((n,i) => (
+            <span key={i} className={`note-pill ${i===0?'root':'tone'}`}>{n}</span>
           ))}
         </div>
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <button className={`arp-btn${arp ? ' active' : ''}`} onClick={() => setArp(p => !p)}>
+        <div style={{ display:'flex', gap:'8px', alignItems:'center' }}>
+          <button className={`arp-btn${arp?' active':''}`} onClick={() => setArp(p=>!p)}>
             Arpeggio
           </button>
           <button className="play-btn"
             onClick={selChord ? () => playNotes(selChord.root, selChord.intervals) : playScale}
-            disabled={playing || loading}
-          >
-            {loading ? 'Loading···' : playing ? '···' : '▶  Play'}
+            disabled={playing||loading}>
+            {loading?'Loading···':playing?'···':'▶  Play'}
           </button>
         </div>
       </div>
