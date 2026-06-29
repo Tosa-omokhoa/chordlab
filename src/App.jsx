@@ -2,22 +2,22 @@ import { useState } from 'react';
 import { ChordExplorer }      from './components/ChordExplorer';
 import { ScaleExplorer }       from './components/ScaleExplorer';
 import { ProgressionBuilder }  from './components/ProgressionBuilder';
+import { EarTraining }         from './components/EarTraining';
 import { VOICE_META, getVoice, releaseVoice } from './audio/voiceEngine';
 
 const PHASES = [
   { id: 'chords',       label: 'Chord Explorer'      },
   { id: 'scales',       label: 'Scale Explorer'       },
   { id: 'progressions', label: 'Progression Builder'  },
-  { id: 'ear',          label: 'Ear Training', soon: true },
+  { id: 'ear',          label: 'Ear Training'         },
 ];
 
 export default function App() {
-  const [phase,        setPhase]        = useState('chords');
-  const [voice,        setVoice]        = useState('grand');
-  const [loading,      setLoading]      = useState(false);
-  const [view,         setView]         = useState('Piano');
-  // Guitar voice is separate from piano voice and persists across phases
-  const [guitarVoice,  setGuitarVoice]  = useState('steel');
+  const [phase,       setPhase]       = useState('chords');
+  const [voice,       setVoice]       = useState('grand');
+  const [loading,     setLoading]     = useState(false);
+  const [view,        setView]        = useState('Piano');
+  const [guitarVoice, setGuitarVoice] = useState('steel');
 
   const handleVoiceChange = async (newVoice) => {
     if (newVoice === voice || loading) return;
@@ -32,13 +32,16 @@ export default function App() {
 
   const currentVoice = VOICE_META.find(v => v.id === voice);
 
+  // Ear Training uses its own voice picker below the phase nav
+  const isEarTraining = phase === 'ear';
+
   const sharedProps = {
     voice,
     loading,
     view,
-    onViewChange:         setView,
+    onViewChange:        setView,
     guitarVoice,
-    onGuitarVoiceChange:  setGuitarVoice,
+    onGuitarVoiceChange: setGuitarVoice,
   };
 
   return (
@@ -54,8 +57,8 @@ export default function App() {
         </p>
       </div>
 
-      {/* Piano voice selector (only visible in Piano view) */}
-      {view === 'Piano' && (
+      {/* Piano voice selector: hidden during Ear Training (it has its own) */}
+      {view === 'Piano' && !isEarTraining && (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '24px' }}>
           <div className="seg-ctrl">
             {VOICE_META.map(v => (
@@ -75,13 +78,11 @@ export default function App() {
       <nav className="phase-nav" aria-label="Phase navigation">
         {PHASES.map(p => (
           <button key={p.id}
-            className={`phase-tab${phase === p.id ? ' active' : ''}${p.soon ? ' soon' : ''}`}
-            onClick={() => !p.soon && setPhase(p.id)}
-            disabled={p.soon}
+            className={`phase-tab${phase === p.id ? ' active' : ''}`}
+            onClick={() => setPhase(p.id)}
             aria-current={phase === p.id ? 'page' : undefined}
           >
             {p.label}
-            {p.soon && <span className="soon-badge">Soon</span>}
           </button>
         ))}
       </nav>
@@ -90,6 +91,25 @@ export default function App() {
       {phase === 'chords'       && <ChordExplorer     {...sharedProps} />}
       {phase === 'scales'       && <ScaleExplorer      {...sharedProps} />}
       {phase === 'progressions' && <ProgressionBuilder {...sharedProps} />}
+      {phase === 'ear'          && (
+        <>
+          {/* Ear Training uses the same piano voice (Grand/Electric/Pad) */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '24px' }}>
+            <div className="seg-ctrl">
+              {VOICE_META.map(v => (
+                <button key={v.id}
+                  className={`seg-btn${voice === v.id ? ' active' : ''}`}
+                  onClick={() => handleVoiceChange(v.id)}
+                >{v.label}</button>
+              ))}
+            </div>
+            <p style={{ fontSize: '12px', color: '#6e6e73', marginTop: '7px', minHeight: '18px' }}>
+              {loading ? '● Loading samples...' : currentVoice?.desc}
+            </p>
+          </div>
+          <EarTraining voice={voice} loading={loading} />
+        </>
+      )}
 
     </main>
   );

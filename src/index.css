@@ -46,95 +46,58 @@ body {
 
 /* ---- Labels -------------------------------------------------- */
 .section-label {
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  color: var(--tx3);
-  margin-bottom: 8px;
+  font-size: 10px; font-weight: 600; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--tx3); margin-bottom: 8px;
 }
 .category-label {
-  font-size: 9px;
-  font-weight: 600;
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
-  color: #b0b0b8;
-  margin-bottom: 5px;
+  font-size: 9px; font-weight: 600; letter-spacing: 1.2px;
+  text-transform: uppercase; color: #b0b0b8; margin-bottom: 5px;
 }
 
 /* ---- Phase navigation ---------------------------------------- */
 .phase-nav {
-  display: flex;
-  border-bottom: 1px solid rgba(0,0,0,0.08);
-  margin-bottom: 28px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
+  display: flex; border-bottom: 1px solid rgba(0,0,0,0.08);
+  margin-bottom: 28px; overflow-x: auto;
+  -webkit-overflow-scrolling: touch; scrollbar-width: none;
 }
 .phase-nav::-webkit-scrollbar { display: none; }
 
 .phase-tab {
-  padding: 10px 14px;
-  border: none;
-  background: transparent;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--tx2);
-  cursor: pointer;
-  font-family: inherit;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
-  transition: color 0.15s;
-  white-space: nowrap;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
+  padding: 10px 14px; border: none; background: transparent;
+  font-size: 13px; font-weight: 500; color: var(--tx2);
+  cursor: pointer; font-family: inherit;
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+  transition: color 0.15s; white-space: nowrap;
+  display: flex; align-items: center; gap: 6px; flex-shrink: 0;
   touch-action: manipulation;
 }
-.phase-tab:hover:not(.soon) { color: var(--tx); }
-.phase-tab.active {
-  color: var(--accent);
-  border-bottom-color: var(--accent);
-  font-weight: 600;
-}
-.phase-tab.soon { color: var(--tx3); cursor: default; }
+.phase-tab:hover { color: var(--tx); }
+.phase-tab.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
 
 .soon-badge {
-  font-size: 9px; font-weight: 600;
-  letter-spacing: 0.5px; text-transform: uppercase;
-  background: rgba(0,0,0,0.06); color: var(--tx3);
-  padding: 2px 6px; border-radius: 100px;
+  font-size: 9px; font-weight: 600; letter-spacing: 0.5px;
+  text-transform: uppercase; background: rgba(0,0,0,0.06);
+  color: var(--tx3); padding: 2px 6px; border-radius: 100px;
 }
 
 /* ---- Piano voice segmented control --------------------------- */
 .seg-ctrl {
-  display: inline-flex;
-  background: rgba(116, 116, 128, 0.13);
-  border-radius: var(--r-pill);
-  padding: 3px;
-  max-width: 100%;
+  display: inline-flex; background: rgba(116,116,128,0.13);
+  border-radius: var(--r-pill); padding: 3px; max-width: 100%;
 }
 .seg-btn {
   padding: 8px 20px; border: none; background: transparent;
   border-radius: var(--r-pill); font-size: 13px; font-weight: 500;
   color: #3a3a3c; cursor: pointer; font-family: inherit;
-  transition: all 0.18s ease; white-space: nowrap;
-  touch-action: manipulation;
+  transition: all 0.18s ease; white-space: nowrap; touch-action: manipulation;
 }
-.seg-btn.active {
-  background: var(--surface); color: var(--tx);
-  box-shadow: var(--shadow-seg);
-}
-@media (max-width: 380px) {
-  .seg-btn { padding: 7px 12px; font-size: 12px; }
-}
+.seg-btn.active { background: var(--surface); color: var(--tx); box-shadow: var(--shadow-seg); }
+@media (max-width: 380px) { .seg-btn { padding: 7px 12px; font-size: 12px; } }
 
 /* ---- Piano / Guitar view toggle ------------------------------ */
 .view-toggle { display: flex; justify-content: flex-end; margin-bottom: 8px; }
 .view-seg {
-  display: inline-flex;
-  background: rgba(116,116,128,0.10);
+  display: inline-flex; background: rgba(116,116,128,0.10);
   border-radius: 8px; padding: 2px;
 }
 .view-btn {
@@ -149,45 +112,38 @@ body {
   box-shadow: 0 1px 3px rgba(0,0,0,.12), 0 0 0 0.5px rgba(0,0,0,.04);
 }
 
-/* ---- Guitar voice toggle (inside dark card) ------------------ */
+/* ---- Guitar voice toggle ------------------------------------- */
 .gtr-voice-seg {
-  display: inline-flex;
-  background: rgba(255,255,255,0.10);
-  border-radius: 8px; padding: 2px; gap: 0;
+  display: inline-flex; background: rgba(255,255,255,0.10);
+  border-radius: 8px; padding: 2px;
 }
 .gtr-voice-btn {
   padding: 5px 14px; border: none; background: transparent;
   border-radius: 6px; font-size: 12px; font-weight: 500;
   color: #8e8e93; cursor: pointer; font-family: inherit;
-  transition: all 0.15s; white-space: nowrap;
-  touch-action: manipulation;
+  transition: all 0.15s; white-space: nowrap; touch-action: manipulation;
 }
 .gtr-voice-btn:hover { color: #c7c7cc; }
 .gtr-voice-btn.active {
-  background: rgba(255,255,255,0.16);
-  color: #ffffff;
+  background: rgba(255,255,255,0.16); color: #ffffff;
   box-shadow: 0 1px 3px rgba(0,0,0,.35);
 }
 
 /* ---- Strum direction buttons --------------------------------- */
 .gtr-dir-btn {
-  width: 30px; height: 30px;
-  border: 1px solid rgba(255,255,255,0.12);
+  width: 30px; height: 30px; border: 1px solid rgba(255,255,255,0.12);
   border-radius: 8px; background: rgba(255,255,255,0.06);
   font-size: 15px; cursor: pointer; color: #8e8e93;
   display: flex; align-items: center; justify-content: center;
-  font-family: inherit; transition: all 0.12s;
-  touch-action: manipulation;
+  font-family: inherit; transition: all 0.12s; touch-action: manipulation;
 }
 .gtr-dir-btn:hover { background: rgba(255,255,255,0.12); color: #c7c7cc; }
 .gtr-dir-btn.active {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fff;
-  box-shadow: 0 2px 8px rgba(88,86,214,0.45);
+  background: var(--accent); border-color: var(--accent);
+  color: #fff; box-shadow: 0 2px 8px rgba(88,86,214,0.45);
 }
 
-/* ---- String vibration keyframe animation --------------------- */
+/* ---- String vibration animation ------------------------------ */
 @keyframes stringVib {
   0%   { opacity: 1;    transform: scaleX(1);    }
   8%   { opacity: 0.95; transform: scaleX(1.04); }
@@ -198,21 +154,16 @@ body {
   85%  { opacity: 0.18; transform: scaleX(1);    }
   100% { opacity: 0;    transform: scaleX(1);    }
 }
-
 .gtr-string-glow {
   animation: stringVib 1s ease-out forwards;
   transform-origin: center;
 }
-
-/* Dot pulse on the fretboard when string sounds */
 @keyframes dotPulse {
-  0%   { opacity: 1; r: 13; }
-  40%  { opacity: 1; r: 16; }
-  100% { opacity: 1; r: 13; }
+  0%   { opacity: 1; }
+  40%  { opacity: 0.7; }
+  100% { opacity: 1; }
 }
-.gtr-dot-active {
-  animation: dotPulse 0.35s ease-out;
-}
+.gtr-dot-active { animation: dotPulse 0.35s ease-out; }
 
 /* ---- Note and chord buttons ---------------------------------- */
 .note-btn {
@@ -254,8 +205,8 @@ body {
 .diatonic-btn:hover { background: #ebebf0; }
 .diatonic-btn.active { background: var(--accent-dim); border-color: var(--accent); }
 .degree-roman {
-  font-size: 9px; font-weight: 600;
-  letter-spacing: 0.8px; text-transform: uppercase; color: var(--tx3);
+  font-size: 9px; font-weight: 600; letter-spacing: 0.8px;
+  text-transform: uppercase; color: var(--tx3);
 }
 .diatonic-btn.active .degree-roman { color: var(--accent); opacity: 0.75; }
 .degree-name { font-size: 15px; font-weight: 600; color: var(--tx); letter-spacing: -0.2px; }
@@ -268,12 +219,8 @@ body {
   padding: 4px 12px; border-radius: var(--r-pill);
   font-size: 12px; font-weight: 600; display: inline-block;
 }
-.note-pill.root {
-  background: var(--root-bg); color: #1a7a32; border: 0.5px solid var(--root-border);
-}
-.note-pill.tone {
-  background: var(--accent-dim); color: #3e3cb0; border: 0.5px solid var(--accent-border);
-}
+.note-pill.root { background: var(--root-bg); color: #1a7a32; border: 0.5px solid var(--root-border); }
+.note-pill.tone { background: var(--accent-dim); color: #3e3cb0; border: 0.5px solid var(--accent-border); }
 
 /* ---- Play, stop, arp buttons --------------------------------- */
 .play-btn {
@@ -296,26 +243,21 @@ body {
   font-size: 12px; font-weight: 500; cursor: pointer; font-family: inherit;
   transition: all 0.15s; touch-action: manipulation;
 }
-.arp-btn.active {
-  border-color: var(--accent); color: var(--accent); background: var(--accent-dim);
-}
+.arp-btn.active { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
 
-/* ---- Piano card (shared by Piano and Fretboard) -------------- */
+/* ---- Piano card ---------------------------------------------- */
 .piano-card {
-  background: #1c1c1e; border-radius: 20px;
-  padding: 18px 18px 18px;
+  background: #1c1c1e; border-radius: 20px; padding: 18px 18px 18px;
   box-shadow: 0 8px 32px rgba(0,0,0,.22), 0 2px 8px rgba(0,0,0,.18);
 }
-
-/* ---- Piano keys ---------------------------------------------- */
 .piano-keys { position: relative; height: 188px; }
 .pk-w {
   position: absolute; height: 100%;
   border-radius: 0 0 9px 9px;
-  background: linear-gradient(180deg, #d0d0d0 0%, #fdfdfd 5%, #fff 100%);
+  background: linear-gradient(180deg,#d0d0d0 0%,#fdfdfd 5%,#fff 100%);
   border: 1.5px solid #c4c4c8; border-top: none;
   box-shadow: 0 3px 10px rgba(0,0,0,.18), inset 0 -1px 0 rgba(0,0,0,.05);
-  z-index: 1; transition: background 0.12s ease, border-color 0.12s;
+  z-index: 1; transition: background 0.12s, border-color 0.12s;
   display: flex; align-items: flex-end; justify-content: center;
   padding-bottom: 6px; cursor: default; user-select: none;
 }
@@ -323,8 +265,7 @@ body {
 .pk-w.wk-tone   { background: linear-gradient(180deg,#a09cf8 0%,#ededff 5%,#e4e2ff 100%); border-color:#8480f0; }
 .pk-w.wk-active { background: linear-gradient(180deg,#f4c060 0%,#fff8e4 5%,#fdf0cc 100%); border-color:#e0a838; }
 .pk-b {
-  position: absolute; height: 61%;
-  border-radius: 0 0 6px 6px;
+  position: absolute; height: 61%; border-radius: 0 0 6px 6px;
   background: linear-gradient(180deg,#424244 0%,#1c1c1e 55%,#111 100%);
   box-shadow: 0 5px 14px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.09);
   z-index: 2; transition: background 0.12s; cursor: default; user-select: none;
@@ -334,12 +275,8 @@ body {
 .pk-b.bk-active { background: linear-gradient(180deg,#ffa828 0%,#e88c00 100%); box-shadow: 0 4px 12px rgba(255,159,10,.35); }
 .key-label     { font-size: 8px; font-weight: 600; color: #c0c0c8; user-select: none; }
 .key-label.lit { color: #8480f0; }
-
-/* ---- Piano / fretboard legend -------------------------------- */
-.piano-legend {
-  display: flex; justify-content: center; gap: 18px; margin-top: 13px; flex-wrap: wrap;
-}
-.legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #6e6e75; }
+.piano-legend { display: flex; justify-content: center; gap: 18px; margin-top: 13px; flex-wrap: wrap; }
+.legend-item  { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #6e6e75; }
 .legend-swatch { width: 9px; height: 9px; border-radius: 3px; flex-shrink: 0; }
 
 /* ---- Progression builder ------------------------------------- */
@@ -351,7 +288,8 @@ body {
   padding: 12px 14px 14px; background: var(--surface);
   border: 1.5px solid var(--border-light); border-radius: 14px;
   box-shadow: var(--shadow-card); cursor: pointer; font-family: inherit;
-  text-align: left; transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s, background 0.15s;
+  text-align: left;
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s, background 0.15s;
   touch-action: manipulation; -webkit-tap-highlight-color: transparent;
 }
 .slot-card:hover:not(.playing) { transform: translateY(-2px); box-shadow: var(--shadow-slot); }
@@ -389,11 +327,8 @@ body {
 }
 .bpm-step:hover  { background: #e0e0e8; }
 .bpm-step:active { transform: scale(0.9); }
-.bpm-value {
-  font-size: 15px; font-weight: 600; color: var(--tx);
-  min-width: 68px; text-align: center; white-space: nowrap;
-}
-.bpm-unit { font-size: 10px; font-weight: 500; color: var(--tx3); margin-left: 3px; }
+.bpm-value { font-size: 15px; font-weight: 600; color: var(--tx); min-width: 68px; text-align: center; white-space: nowrap; }
+.bpm-unit  { font-size: 10px; font-weight: 500; color: var(--tx3); margin-left: 3px; }
 
 .share-btn {
   padding: 9px 16px; border: 1.5px solid var(--border-light);
@@ -404,7 +339,74 @@ body {
 .share-btn:hover { background: var(--bg); }
 .share-btn.copied { border-color: #34c759; color: #1a7a32; background: var(--root-bg); }
 
-/* ---- Responsive -------------------------------------------- */
+/* ---- Ear Training -------------------------------------------- */
+.et-choices {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.et-choice-btn {
+  position: relative;
+  padding: 18px 14px;
+  border: 1.5px solid var(--border-light);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--tx);
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-card);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  min-height: 68px;
+}
+.et-choice-btn:hover:not(:disabled):not(.et-correct):not(.et-wrong):not(.et-dimmed) {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-slot);
+}
+.et-choice-btn:active:not(:disabled) { transform: scale(0.97); }
+
+.et-choice-name {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  color: inherit;
+}
+
+.et-correct {
+  border-color: #34c759;
+  background: rgba(52,199,89,0.10);
+  color: #1a7a32;
+}
+.et-wrong {
+  border-color: var(--danger);
+  background: rgba(255,59,48,0.08);
+  color: var(--danger);
+}
+.et-dimmed {
+  opacity: 0.38;
+  cursor: default;
+}
+
+.et-badge {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+}
+.et-badge-correct { color: #34c759; }
+.et-badge-wrong   { color: var(--danger); }
+
+/* ---- Responsive --------------------------------------------- */
 @media (max-width: 600px) {
   .note-btn  { min-width: 34px; padding: 6px 8px; font-size: 12px; }
   .chord-btn { padding: 5px 10px; font-size: 11px; }
@@ -412,8 +414,11 @@ body {
   .play-btn  { min-width: 84px; padding: 9px 18px; font-size: 12px; }
   .seg-btn   { padding: 7px 14px; }
   .gtr-voice-btn { padding: 5px 10px; font-size: 11px; }
+  .et-choice-btn { padding: 15px 10px; min-height: 60px; }
+  .et-choice-name { font-size: 13px; }
 }
 @media (max-width: 360px) {
   .note-btn { min-width: 30px; padding: 5px 6px; font-size: 11px; }
   .seg-btn  { padding: 6px 10px; font-size: 11px; }
+  .et-choices { gap: 8px; }
 }
