@@ -1,15 +1,231 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ChordLab — Music theory, instantly</title>
-    <meta name="description" content="Interactive chord and scale explorer. Pick a root note, pick a chord type, hear it instantly." />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet" />
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Primary meta -->
+  <title>ChordLab — Music theory, instantly.</title>
+  <meta name="description"
+    content="Interactive chord explorer, scale explorer, progression builder, guitar fretboard, and ear training. Free. No account required." />
+  <meta name="theme-color" content="#f0f0f5" />
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="apple-touch-icon" href="/favicon.svg" />
+
+  <!-- Open Graph -->
+  <meta property="og:type"        content="website" />
+  <meta property="og:url"         content="https://chordlab-tosa.vercel.app/" />
+  <meta property="og:title"       content="ChordLab — Music theory, instantly." />
+  <meta property="og:description" content="Chord explorer, scale explorer, progression builder, guitar fretboard, and ear training. Free. No account." />
+  <meta property="og:image"       content="https://chordlab-tosa.vercel.app/og-image.png" />
+  <meta property="og:image:width"  content="1200" />
+  <meta property="og:image:height" content="630" />
+
+  <!-- Twitter card -->
+  <meta name="twitter:card"        content="summary_large_image" />
+  <meta name="twitter:title"       content="ChordLab — Music theory, instantly." />
+  <meta name="twitter:description" content="Chord explorer, scale explorer, progression builder, guitar fretboard, and ear training. Free. No account." />
+  <meta name="twitter:image"       content="https://chordlab-tosa.vercel.app/og-image.png" />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet" />
+
+  <style>
+    /* ── Loader reset ─────────────────────────────────────────── */
+    #cl-loader *,
+    #cl-loader *::before,
+    #cl-loader *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* ── Full-screen overlay ──────────────────────────────────── */
+    #cl-loader {
+      position: fixed;
+      inset: 0;
+      background: #f0f0f5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 99999;
+      opacity: 1;
+      transition: opacity 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+      font-family: -apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    #cl-loader.cl-out {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* ── Inner content block ──────────────────────────────────── */
+    .cl-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      user-select: none;
+    }
+
+    /* ── Piano icon mark ──────────────────────────────────────── */
+    .cl-icon-wrap {
+      margin-bottom: 28px;
+      animation: clScaleIn 0.72s cubic-bezier(0.2, 0, 0, 1) 0.1s both;
+    }
+
+    .cl-icon {
+      width: 64px;
+      height: 44px;
+      display: block;
+      filter: drop-shadow(0 4px 16px rgba(88, 86, 214, 0.22));
+    }
+
+    /* ── Animated equalizer bars ──────────────────────────────── */
+    .cl-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 5px;
+      height: 36px;
+      margin-bottom: 26px;
+      animation: clFadeIn 0.6s ease 0.4s both;
+    }
+
+    .cl-bar {
+      width: 4px;
+      border-radius: 3px;
+      background: #5856d6;
+      transform-origin: bottom center;
+      animation: clBarWave 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite both;
+    }
+
+    /* Individual bar heights and staggered delays */
+    .cl-bar:nth-child(1) { height: 14px; animation-delay: 0.00s; }
+    .cl-bar:nth-child(2) { height: 22px; animation-delay: 0.12s; background: #7c7ae0; }
+    .cl-bar:nth-child(3) { height: 32px; animation-delay: 0.24s; }
+    .cl-bar:nth-child(4) { height: 36px; animation-delay: 0.36s; background: #7c7ae0; }
+    .cl-bar:nth-child(5) { height: 28px; animation-delay: 0.24s; }
+    .cl-bar:nth-child(6) { height: 20px; animation-delay: 0.12s; background: #7c7ae0; }
+    .cl-bar:nth-child(7) { height: 12px; animation-delay: 0.00s; }
+
+    @keyframes clBarWave {
+      0%, 100% {
+        transform: scaleY(0.28);
+        opacity: 0.45;
+      }
+      50% {
+        transform: scaleY(1);
+        opacity: 1;
+      }
+    }
+
+    /* ── Wordmark ─────────────────────────────────────────────── */
+    .cl-wordmark {
+      font-size: 30px;
+      font-weight: 600;
+      letter-spacing: -0.6px;
+      color: #1d1d1f;
+      animation: clSlideUp 0.7s cubic-bezier(0.2, 0, 0, 1) 0.25s both;
+    }
+
+    .cl-wordmark span {
+      color: #5856d6;
+    }
+
+    /* ── Tagline ──────────────────────────────────────────────── */
+    .cl-tagline {
+      font-size: 13px;
+      color: #6e6e73;
+      font-weight: 400;
+      margin-top: 6px;
+      animation: clSlideUp 0.7s cubic-bezier(0.2, 0, 0, 1) 0.38s both;
+    }
+
+    /* ── Shared keyframes ─────────────────────────────────────── */
+    @keyframes clScaleIn {
+      from { opacity: 0; transform: scale(0.88); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes clSlideUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes clFadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    /* ── Responsive ───────────────────────────────────────────── */
+    @media (max-width: 480px) {
+      .cl-icon  { width: 52px; height: 36px; }
+      .cl-wordmark { font-size: 26px; }
+      .cl-bars  { gap: 4px; height: 30px; margin-bottom: 22px; }
+      .cl-bar   { width: 3.5px; }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- ── Animated loading screen ─────────────────────────────── -->
+  <div id="cl-loader" role="status" aria-label="Loading ChordLab">
+    <div class="cl-inner">
+
+      <!-- Piano icon -->
+      <div class="cl-icon-wrap">
+        <svg class="cl-icon" viewBox="0 0 80 56" xmlns="http://www.w3.org/2000/svg">
+          <!-- Dark card background -->
+          <rect width="80" height="56" rx="10" fill="#1c1c1e"/>
+
+          <!-- Three white keys -->
+          <rect x="8"  y="8" width="17" height="40" rx="4" fill="#f0f0f0"/>
+          <rect x="31" y="8" width="17" height="40" rx="4" fill="#f0f0f0"/>
+          <rect x="54" y="8" width="17" height="40" rx="4" fill="#f0f0f0"/>
+
+          <!-- Green root key (C) - first white key -->
+          <rect x="8" y="8" width="17" height="40" rx="4"
+                fill="url(#rootGrad)" opacity="1"/>
+
+          <!-- Two purple black keys -->
+          <rect x="21" y="8" width="13" height="26" rx="3" fill="#5856d6"/>
+          <rect x="44" y="8" width="13" height="26" rx="3" fill="#8480f8"/>
+
+          <defs>
+            <linearGradient id="rootGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#72e494"/>
+              <stop offset="40%" stop-color="#f0fff5"/>
+              <stop offset="100%" stop-color="#dcffea"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+
+      <!-- Animated bars -->
+      <div class="cl-bars" aria-hidden="true">
+        <div class="cl-bar"></div>
+        <div class="cl-bar"></div>
+        <div class="cl-bar"></div>
+        <div class="cl-bar"></div>
+        <div class="cl-bar"></div>
+        <div class="cl-bar"></div>
+        <div class="cl-bar"></div>
+      </div>
+
+      <!-- Wordmark + tagline -->
+      <div class="cl-wordmark">Chord<span>Lab</span></div>
+      <div class="cl-tagline">Music theory, instantly.</div>
+
+    </div>
+  </div>
+
+  <!-- ── React root ──────────────────────────────────────────── -->
+  <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
+</body>
 </html>

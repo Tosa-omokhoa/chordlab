@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ChordExplorer }      from './components/ChordExplorer';
 import { ScaleExplorer }       from './components/ScaleExplorer';
 import { ProgressionBuilder }  from './components/ProgressionBuilder';
@@ -19,6 +19,26 @@ export default function App() {
   const [view,        setView]        = useState('Piano');
   const [guitarVoice, setGuitarVoice] = useState('steel');
 
+  // ── Remove the loading screen after React is ready ──────────
+  useEffect(() => {
+    const loader = document.getElementById('cl-loader');
+    if (!loader) return;
+
+    // Brief pause so the app has visually settled before fade
+    const fadeTimer = setTimeout(() => {
+      loader.classList.add('cl-out');
+
+      const removeTimer = setTimeout(() => {
+        if (loader.parentNode) loader.parentNode.removeChild(loader);
+      }, 600); // matches the CSS transition duration
+
+      return () => clearTimeout(removeTimer);
+    }, 480);
+
+    return () => clearTimeout(fadeTimer);
+  }, []);
+
+  // ── Piano voice ──────────────────────────────────────────────
   const handleVoiceChange = async (newVoice) => {
     if (newVoice === voice || loading) return;
     releaseVoice(voice);
@@ -30,9 +50,7 @@ export default function App() {
     }
   };
 
-  const currentVoice = VOICE_META.find(v => v.id === voice);
-
-  // Ear Training uses its own voice picker below the phase nav
+  const currentVoice  = VOICE_META.find(v => v.id === voice);
   const isEarTraining = phase === 'ear';
 
   const sharedProps = {
@@ -57,7 +75,7 @@ export default function App() {
         </p>
       </div>
 
-      {/* Piano voice selector: hidden during Ear Training (it has its own) */}
+      {/* Piano voice selector (hidden on Ear Training and Guitar view) */}
       {view === 'Piano' && !isEarTraining && (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '24px' }}>
           <div className="seg-ctrl">
@@ -91,9 +109,8 @@ export default function App() {
       {phase === 'chords'       && <ChordExplorer     {...sharedProps} />}
       {phase === 'scales'       && <ScaleExplorer      {...sharedProps} />}
       {phase === 'progressions' && <ProgressionBuilder {...sharedProps} />}
-      {phase === 'ear'          && (
+      {phase === 'ear' && (
         <>
-          {/* Ear Training uses the same piano voice (Grand/Electric/Pad) */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '24px' }}>
             <div className="seg-ctrl">
               {VOICE_META.map(v => (
